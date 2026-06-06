@@ -1,150 +1,228 @@
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.backends.backend_pdf import PdfPages
 import plotly.express as px
-import os
 
-# Error Handling Wrapper
-def safe_execute(func):
-    def wrapper_safe_execute(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            print(f"Error occurred: {e}")
-    return wrapper_safe_execute
 
-# Step 1: Data Loading and Exploration
-@safe_execute
-def load_and_explore_data(filepath):
-    print("Loading data...")
-    df = pd.read_csv(filepath)
-    print(f"Data loaded. Shape: {df.shape}")
-    print(f"Columns: {df.columns}")
-    print(f"Preview of data:\n{df.head()}")
-    print(f"Missing values:\n{df.isnull().sum()}")
-    return df
+DEFAULT_COUNTRIES = ["Kenya", "United States", "India"]
 
-# Step 2: Data Cleaning
-@safe_execute
-def clean_data(df, countries_of_interest):
-    print("Cleaning data...")
-    df = df[df['location'].isin(countries_of_interest)]
-    df['date'] = pd.to_datetime(df['date'])
-    df.fillna(method='ffill', inplace=True)  # Forward fill for NaN values
-    print("Data cleaned. Final shape:", df.shape)
-    return df
+REQUIRED_COLUMNS = [
+    "iso_code",
+    "continent",
+    "location",
+    "date",
+    "population",
+    "total_cases",
+    "total_deaths",
+    "total_cases_per_million",
+    "total_deaths_per_million",
+    "new_cases_smoothed_per_million",
+    "people_fully_vaccinated_per_hundred",
+]
 
-# Step 3: Exploratory Data Analysis
-@safe_execute
-def perform_eda(df, countries_of_interest):
-    print("Performing EDA...")
+COLOR_SEQUENCE = [
+    "#0f766e",
+    "#e4572e",
+    "#4c956c",
+    "#2f4b7c",
+    "#f2c14e",
+    "#7b2cbf",
+]
 
-    # Plot total cases over time
-    plt.figure(figsize=(10, 6))
-    for country in countries_of_interest:
-        country_df = df[df['location'] == country]
-        plt.plot(country_df['date'], country_df['total_cases'], label=country)
-    plt.title("Total Cases Over Time")
-    plt.xlabel("Date")
-    plt.ylabel("Total Cases")
-    plt.legend()
-    plt.savefig('total_cases_over_time.png')
-    plt.close()
 
-    # Plot total deaths over time
-    plt.figure(figsize=(10, 6))
-    for country in countries_of_interest:
-        country_df = df[df['location'] == country]
-        plt.plot(country_df['date'], country_df['total_deaths'], label=country)
-    plt.title("Total Deaths Over Time")
-    plt.xlabel("Date")
-    plt.ylabel("Total Deaths")
-    plt.legend()
-    plt.savefig('total_deaths_over_time.png')
-    plt.close()
+def load_data(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        raise FileNotFoundError(f"Dataset not found: {path}")
 
-    # Daily new cases comparison
-    plt.figure(figsize=(10, 6))
-    for country in countries_of_interest:
-        country_df = df[df['location'] == country]
-        plt.plot(country_df['date'], country_df['new_cases'], label=country)
-    plt.title("Daily New Cases Comparison")
-    plt.xlabel("Date")
-    plt.ylabel("New Cases")
-    plt.legend()
-    plt.savefig('daily_new_cases.png')
-    plt.close()
+    df = pd.read_csv(path, usecols=lambda column: column in REQUIRED_COLUMNS)
+    missing = {"iso_code", "continent", "location", "date"} - set(df.columns)
+    if missing:
+        raise ValueError(f"Dataset is missing required columns: {', '.join(sorted(missing))}")
 
-# Step 4: Vaccination Progress
-@safe_execute
-def visualize_vaccination_progress(df, countries_of_interest):
-    print("Visualizing vaccination progress...")
-    plt.figure(figsize=(10, 6))
-    for country in countries_of_interest:
-        country_df = df[df['location'] == country]
-        plt.plot(country_df['date'], country_df['total_vaccinations'], label=country)
-    plt.title("Vaccination Progress Over Time")
-    plt.xlabel("Date")
-    plt.ylabel("Total Vaccinations")
-    plt.legend()
-    plt.savefig('vaccination_progress.png')
-    plt.close()
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df = df.dropna(subset=["date", "location", "iso_code"])
 
-# Step 5: Choropleth Map
-@safe_execute
-def generate_choropleth_map(df):
-    print("Generating choropleth map...")
-    latest_date = df['date'].max()
-    latest_data = df[df['date'] == latest_date]
-    fig = px.choropleth(latest_data,
-                        locations="iso_code",
-                        color="total_cases",
-                        hover_name="location",
-                        title=f"Global COVID-19 Cases as of {latest_date}",
-                        color_continuous_scale=px.colors.sequential.Plasma)
-    fig.write_html("choropleth_map.html")
-    print("Choropleth map saved as 'choropleth_map.html'.")
+    for column in REQUIRED_COLUMNS:
+        if column not in {"iso_code", "continent", "location", "date"} and column in df:
+            df[column] = pd.to_numeric(df[column], errors="coerce")
 
-# Step 6: Generate PDF Report
-@safe_execute
-def generate_pdf_report():
-    print("Generating PDF report...")
-    with PdfPages("COVID19_Data_Report.pdf") as pdf:
-        for filename in ['total_cases_over_time.png', 'total_deaths_over_time.png', 'daily_new_cases.png', 'vaccination_progress.png']:
-            if os.path.exists(filename):
-                fig, ax = plt.subplots(figsize=(10, 6))
-                img = plt.imread(filename)
-                ax.imshow(img)
-                ax.axis('off')
-                pdf.savefig(fig)
-                plt.close(fig)
-        print("PDF report generated as 'COVID19_Data_Report.pdf'.")
+    df["continent"] = df["continent"].fillna("")
+    df = df[df["continent"].ne("") & ~df["iso_code"].str.startswith("OWID")]
+    return df.sort_values(["location", "date"]).reset_index(drop=True)
 
-# Step 7: Generate Insights
-@safe_execute
-def generate_insights(df):
-    print("Generating insights...")
-    latest_date = df['date'].max()
-    latest_data = df[df['date'] == latest_date]
-    top_country = latest_data.loc[latest_data['total_cases'].idxmax()]
-    print(f"As of {latest_date}:")
-    print(f"1. {top_country['location']} has the most total cases: {top_country['total_cases']}.")
-    print(f"2. Global vaccination rates are improving steadily.")
-    print(f"3. Death rates vary significantly across countries.")
-    print("Insights generation complete.")
 
-# Main Function
+def latest_records_for_metric(df: pd.DataFrame, metric: str) -> pd.DataFrame:
+    valid = df.dropna(subset=[metric]).sort_values("date")
+    if valid.empty:
+        return valid
+    return valid.groupby("location", as_index=False).tail(1)
+
+
+def create_country_snapshot(df: pd.DataFrame, countries: list[str]) -> pd.DataFrame:
+    selected = df[df["location"].isin(countries)]
+    latest_base = (
+        selected.sort_values("date")
+        .groupby("location", as_index=False)
+        .tail(1)[["location", "continent", "population", "date"]]
+        .rename(columns={"date": "latest_record"})
+        .set_index("location")
+    )
+
+    metrics = [
+        "total_cases",
+        "total_deaths",
+        "total_cases_per_million",
+        "total_deaths_per_million",
+        "new_cases_smoothed_per_million",
+        "people_fully_vaccinated_per_hundred",
+    ]
+    snapshot = latest_base.copy()
+
+    for metric in metrics:
+        metric_rows = latest_records_for_metric(selected, metric)
+        metric_rows = metric_rows[["location", "date", metric]].rename(
+            columns={"date": f"{metric}_date"}
+        )
+        snapshot = snapshot.join(metric_rows.set_index("location"), how="left")
+
+    snapshot["case_fatality_rate"] = (
+        snapshot["total_deaths"] / snapshot["total_cases"] * 100
+    )
+    return snapshot.reset_index().rename(columns={"location": "country"})
+
+
+def write_trend_chart(df: pd.DataFrame, output_path: Path) -> None:
+    chart_data = df.dropna(subset=["new_cases_smoothed_per_million"])
+    fig = px.line(
+        chart_data,
+        x="date",
+        y="new_cases_smoothed_per_million",
+        color="location",
+        color_discrete_sequence=COLOR_SEQUENCE,
+        labels={
+            "date": "Date",
+            "new_cases_smoothed_per_million": "7-day smoothed cases per million",
+            "location": "Country",
+        },
+        title="COVID-19 case waves by country",
+    )
+    fig.update_layout(template="plotly_white", hovermode="x unified")
+    fig.write_html(output_path)
+
+
+def write_global_map(df: pd.DataFrame, output_path: Path) -> None:
+    map_data = latest_records_for_metric(df, "total_cases_per_million")
+    fig = px.choropleth(
+        map_data,
+        locations="iso_code",
+        color="total_cases_per_million",
+        hover_name="location",
+        hover_data={
+            "iso_code": False,
+            "continent": True,
+            "date": True,
+            "total_cases_per_million": ":,.1f",
+        },
+        color_continuous_scale="Viridis",
+        projection="natural earth",
+        title="Confirmed COVID-19 cases per million, latest available country values",
+    )
+    fig.update_layout(template="plotly_white", margin=dict(l=0, r=0, t=60, b=0))
+    fig.write_html(output_path)
+
+
+def write_markdown_summary(
+    df: pd.DataFrame,
+    snapshot: pd.DataFrame,
+    output_path: Path,
+    countries: list[str],
+) -> None:
+    date_min = df["date"].min().strftime("%Y-%m-%d")
+    date_max = df["date"].max().strftime("%Y-%m-%d")
+    highest_case_burden = snapshot.sort_values(
+        "total_cases_per_million", ascending=False
+    ).iloc[0]
+    highest_death_burden = snapshot.sort_values(
+        "total_deaths_per_million", ascending=False
+    ).iloc[0]
+
+    summary = f"""# COVID-19 Analysis Summary
+
+Data source file: `owid-covid-data.csv`
+
+Coverage: {len(df):,} country-level records from {date_min} to {date_max}.
+
+Countries analyzed: {", ".join(countries)}
+
+## Snapshot Findings
+
+- Highest confirmed case burden in the selected set: {highest_case_burden["country"]} at {highest_case_burden["total_cases_per_million"]:,.1f} cases per million.
+- Highest confirmed death burden in the selected set: {highest_death_burden["country"]} at {highest_death_burden["total_deaths_per_million"]:,.1f} deaths per million.
+- The dashboard uses latest non-null values per metric because OWID metrics can stop updating on different dates.
+
+## Generated Artifacts
+
+- `country_snapshot.csv`: latest comparable country metrics.
+- `case_trends.html`: interactive case-wave trend chart.
+- `global_case_map.html`: interactive country choropleth.
+"""
+    output_path.write_text(summary, encoding="utf-8")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate static COVID-19 analysis artifacts from OWID data."
+    )
+    parser.add_argument(
+        "--data",
+        type=Path,
+        default=Path("owid-covid-data.csv"),
+        help="Path to the OWID COVID-19 CSV file.",
+    )
+    parser.add_argument(
+        "--countries",
+        nargs="+",
+        default=DEFAULT_COUNTRIES,
+        help="Country names to include in the focused comparison.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("outputs"),
+        help="Directory where generated artifacts should be written.",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    df = load_data(args.data)
+
+    available = set(df["location"].unique())
+    missing_countries = [country for country in args.countries if country not in available]
+    if missing_countries:
+        missing = ", ".join(missing_countries)
+        raise ValueError(f"Country names not found in dataset: {missing}")
+
+    selected_df = df[df["location"].isin(args.countries)]
+    snapshot = create_country_snapshot(df, args.countries)
+
+    args.output.mkdir(parents=True, exist_ok=True)
+    snapshot.to_csv(args.output / "country_snapshot.csv", index=False)
+    write_trend_chart(selected_df, args.output / "case_trends.html")
+    write_global_map(df, args.output / "global_case_map.html")
+    write_markdown_summary(
+        df,
+        snapshot,
+        args.output / "summary.md",
+        args.countries,
+    )
+
+    print(f"Generated analysis artifacts in {args.output.resolve()}")
+
+
 if __name__ == "__main__":
-    file_path = "owid-covid-data.csv"
-    countries = ['Kenya', 'USA', 'India']
-
-    df = load_and_explore_data(file_path)
-    if df is not None:
-        df_cleaned = clean_data(df, countries)
-        if df_cleaned is not None:
-            perform_eda(df_cleaned, countries)
-            visualize_vaccination_progress(df_cleaned, countries)
-            generate_choropleth_map(df_cleaned)
-            generate_pdf_report()
-            generate_insights(df_cleaned)
+    main()

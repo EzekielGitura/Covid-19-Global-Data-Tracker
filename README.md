@@ -1,104 +1,54 @@
-# 🌍 COVID-19 Global Data Tracker Dashboard
+# COVID-19 Global Data Tracker
 
-### 🚀 Project Overview
-Welcome to the **COVID-19 Global Data Tracker Dashboard**! This interactive project allows you to explore and visualize global COVID-19 data in a fun and engaging way. Whether you're analyzing vaccination rollouts, observing country-specific trends, or creating choropleth maps of cases worldwide, this dashboard has you covered. 
+Interactive Streamlit dashboard for exploring country-level COVID-19 cases, deaths, and vaccination coverage from the Our World in Data dataset.
 
-With just a few clicks, you can dive deep into the pandemic's data, customize your analysis, and generate insights that matter to you.
+## Features
 
----
+- Automatic loading of the bundled `owid-covid-data.csv`, with optional upload for a newer CSV.
+- Country and date filters for focused comparisons.
+- KPI cards for confirmed cases, confirmed deaths, case fatality ratio, and vaccination coverage.
+- Population-normalized trend charts for fairer country comparison.
+- Global choropleth map, country ranking chart, metric availability table, and filtered CSV download.
 
-### 🔥 Features
-✔️ **Interactive Dashboard:**  
-Easily choose countries and date ranges for analysis.  
+## Data
 
-✔️ **Visualizations Galore:**  
-Beautiful line charts, choropleth maps, and more to help you understand trends.  
+- Source: Our World in Data COVID-19 dataset
+- Local file: `owid-covid-data.csv`
+- Snapshot coverage: 2020-01-01 through 2024-08-14
+- Dataset docs: https://docs.owid.io/projects/covid/en/latest/dataset.html
+- Refresh CSV: https://covid.ourworldindata.org/data/owid-covid-data.csv
 
-✔️ **Vaccination & Hospitalization Analysis:**  
-Track vaccination progress and, if available, hospitalization and ICU data.  
+The dashboard uses the latest non-null value per metric because OWID fields can stop updating on different dates.
 
-✔️ **Easy Insights Generation:**  
-Generate insights and observations based on the latest data.  
+## Tech Stack
 
-✔️ **PDF Reports & Visuals:**  
-Export your visualizations and insights for presentations or research reports.
+Python, pandas, Plotly, Streamlit
 
----
+## Run Locally
 
-### 🎛️ How It Works
-1. Upload the dataset (`owid-covid-data.csv`) directly in the dashboard.
-2. Select countries and date ranges to filter the data.
-3. View and interact with:
-   - Total cases and deaths over time.
-   - Vaccination progress.
-   - Daily new cases comparison.
-   - A choropleth map for global cases.
-4. (Optional) Dive into hospitalization and ICU trends.
-5. Share your insights with the PDF report feature!  
+Use Python 3.11 or 3.12.
 
----
-
-### 🛠️ Setup Instructions
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/EzekielGitura/covid19-global-data-tracker.git
-   cd covid19-global-data-tracker
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run the dashboard app:**
-   ```bash
-   streamlit run covid19_data_analysis_dashboard.py
-   ```
-
-4. **Open your browser** and navigate to the Streamlit URL provided (it looks something like `http://localhost:8501`).
-
----
-
-### 📂 File Structure
-```
-📦 covid19-global-data-tracker
- ┣ 📜 covid19_data_analysis_dashboard.py
- ┣ 📜 requirements.txt
- ┣ 📜 README.md
- ┗ 📄 owid-covid-data.csv (you need to add this file manually)
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+streamlit run dashboard.py
 ```
 
----
+Open the Streamlit URL shown in the terminal, usually `http://localhost:8501`.
 
-### 💡 Example Use Cases
-- **Understand Vaccination Progress:** Want to know how different countries are rolling out vaccines? We've got you covered!  
-- **Compare COVID-19 Trends:** Choose countries like the USA, India, and Kenya to see how their cases, deaths, and vaccinations compare.  
-- **Global Perspective:** Use the interactive choropleth map to visualize global cases.  
+## Static Analysis
 
----
+Generate optional HTML and CSV artifacts:
 
-### ⚙️ Dependencies
-- **pandas**: For data manipulation and cleaning.  
-- **matplotlib**: For creating static visualizations.  
-- **seaborn**: For enhancing visualization aesthetics.  
-- **plotly**: For creating interactive maps and charts.  
-- **streamlit**: For building the interactive dashboard.
+```bash
+python owid_analysis.py --countries Kenya "United States" India
+```
 
----
+Outputs are written to `outputs/`.
 
-### 🏆 Stretch Goals (Optional Features)
-✨ Add user input for specific insights.  
-✨ Build an even more detailed dashboard with hospitalization data.  
-✨ Include ICU trends for deeper pandemic analysis.  
+## Limitations
 
----
-
-### 🎉 Have Fun Exploring!
-COVID-19 data is complex, but this dashboard makes it intuitive, insightful, and interactive. Whether you're a data enthusiast, researcher, or just curious, we hope this project adds value to your exploration.
-
----
-
-### ⚠️ Disclaimer
-This project uses real-world data from "Our World in Data". Data accuracy depends on the dataset provided and might have limitations or discrepancies. Always cross-check data for critical use cases.
-
----
+- The bundled dataset is a static snapshot, not a live feed.
+- Confirmed metrics depend on country reporting practices and testing availability.
+- Case fatality ratio is calculated as confirmed deaths divided by confirmed cases.

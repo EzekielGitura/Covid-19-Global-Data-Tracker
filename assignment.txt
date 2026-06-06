@@ -1,178 +1,76 @@
-📝 Project Title: COVID-19 Global Data Tracker
-Project Description:
+Project Title: COVID-19 Global Data Tracker
 
-In this project, learners will build a data analysis and reporting notebook (or app) that tracks global COVID-19 trends. The project will analyze cases, deaths, recoveries, and vaccinations across countries and time. Learners will clean and process real-world data, perform exploratory data analysis (EDA), generate insights, and visualize trends using Python data tools.
+Project Description
 
-By the end, they’ll have a data analysis report with visuals and narrative insights, suitable for presentation or publishing.
+Build a data analysis report or interactive app that tracks global COVID-19 trends using real-world public health data. The project should clean and process country-level data, analyze changes in cases, deaths, and vaccination coverage over time, and communicate findings through clear visualizations and concise narrative insights.
 
-🚩 Project Objectives:
+Project Objectives
 
-✅ Import and clean COVID-19 global data
-✅ Analyze time trends (cases, deaths, vaccinations)
-✅ Compare metrics across countries/regions
-✅ Visualize trends with charts and maps
-✅ Communicate findings in a Jupyter Notebook or PDF report
+- Import and clean COVID-19 global data.
+- Analyze time trends for cases, deaths, and vaccinations.
+- Compare metrics across countries and regions.
+- Visualize trends with charts and maps.
+- Communicate findings in a notebook, report, or interactive dashboard.
 
-🗂️ Project Segments (Step-by-Step Guide)
-1️⃣ Data Collection
+Recommended Data Source
 
-Goal: Obtain a reliable COVID-19 dataset.
+- Our World in Data COVID-19 dataset: owid-covid-data.csv
+- Alternative source: Johns Hopkins University COVID-19 data repository
 
-✅ Data Sources:
+Recommended Workflow
 
-Our World in Data COVID-19 Dataset (CSV & API)
+1. Data Collection
+   Obtain a reliable COVID-19 dataset and save it in the project folder.
 
-Johns Hopkins University GitHub Repository
+2. Data Loading and Exploration
+   Load the dataset with pandas, inspect the columns, preview records, and review missing values.
 
-👉 Recommended for beginners: Use the cleaned CSV from Our World in Data (easy to load with pandas).
+3. Data Cleaning
+   Convert date fields to datetime values, filter selected countries or regions, and handle missing values in critical metrics.
 
-✅ Action:
+4. Exploratory Data Analysis
+   Analyze cumulative cases, cumulative deaths, daily or smoothed new cases, and case fatality ratios.
 
-Download owid-covid-data.csv from the above link.
+5. Vaccination Analysis
+   Compare vaccination progress across selected countries using cumulative totals or population-adjusted vaccination rates.
 
-Save in your working folder.
+6. Geographic Visualization
+   Create an optional choropleth map using ISO country codes and the latest available case or vaccination metrics.
 
+7. Insights and Reporting
+   Summarize the most important findings, highlight notable differences between countries, and explain any data limitations.
 
-2️⃣ Data Loading & Exploration
+Key Columns
 
-Goal: Load the dataset and explore its structure.
+- date
+- location
+- iso_code
+- total_cases
+- new_cases
+- total_deaths
+- new_deaths
+- total_vaccinations
+- people_fully_vaccinated_per_hundred
+- population
 
-✅ Tasks:
+Recommended Tools
 
-Load data using pandas.read_csv().
+- Python
+- pandas
+- matplotlib or seaborn
+- Plotly
+- Jupyter Notebook, Streamlit, or another reporting interface
 
-Check columns: df.columns.
+Expected Deliverables
 
-Preview rows: df.head().
+- A cleaned and documented analysis workflow.
+- Visualizations comparing COVID-19 trends across countries.
+- A short written summary of findings.
+- Optional exportable artifacts such as an HTML dashboard, PDF report, or presentation-ready charts.
 
-Identify missing values: df.isnull().sum().
+Optional Extensions
 
-✅ Tools:
-
-pandas
-
-📌 Key columns:
-
-date, location, total_cases, total_deaths, new_cases, new_deaths, total_vaccinations, etc.
-
-
-3️⃣ Data Cleaning
-
-Goal: Prepare data for analysis.
-
-✅ Tasks:
-
-Filter countries of interest (e.g., Kenya, USA, India).
-
-Drop rows with missing dates/critical values.
-
-Convert date column to datetime: pd.to_datetime().
-
-Handle missing numeric values with fillna() or interpolate().
-
-✅ Tools:
-
-pandas
-
-4️⃣ Exploratory Data Analysis (EDA)
-
-Goal: Generate descriptive statistics & explore trends.
-
-✅ Tasks:
-
-Plot total cases over time for selected countries.
-
-Plot total deaths over time.
-
-Compare daily new cases between countries.
-
-Calculate the death rate: total_deaths / total_cases.
-
-✅ Visualizations:
-
-Line charts (cases & deaths over time).
-
-Bar charts (top countries by total cases).
-
-Heatmaps (optional for correlation analysis).
-
-✅ Tools:
-
-matplotlib
-
-seaborn
-
-5️⃣ Visualizing Vaccination Progress
-
-Goal: Analyze vaccination rollouts.
-
-✅ Tasks:
-
-Plot cumulative vaccinations over time for selected countries.
-
-Compare % vaccinated population.
-
-✅ Charts:
-
-Line charts.
-
-Optional: Pie charts for vaccinated vs. unvaccinated.
-
-✅ Tools:
-
-matplotlib
-
-seaborn
-
-6️⃣ Optional: Build a Choropleth Map
-
-Goal: Visualize cases or vaccination rates by country on a world map.
-
-✅ Tools:
-
-Plotly Express
-
-Or geopandas (advanced)
-
-✅ Tasks:
-
-Prepare a dataframe with iso_code, total_cases for the latest date.
-
-Plot a choropleth showing case density or vaccination rates.
-
-7️⃣ Insights & Reporting
-
-Goal: Summarize findings.
-
-✅ Tasks:
-
-Write 3-5 key insights from the data (e.g., "X country had the fastest vaccine rollout").
-
-Highlight anomalies or interesting patterns.
-
-Use markdown cells in Jupyter Notebook to write your narrative.
-
-✅ Deliverables:
-
-A well-documented Jupyter Notebook combining:
-
-Code
-
-Visualizations
-
-Narrative explanations
-
-Optional export: Notebook → PDF or a PowerPoint with screenshots.
-
-🛠️ Recommended Tools:
-
-✅ Jupyter Notebook (or VS Code with Jupyter extension)
-✅ pandas
-✅ matplotlib & seaborn
-✅ Optional: plotly, geopandas 
-
-🎯 Optional Stretch Goals:
-
-⭐ Allow user input (choose country & date range)
-⭐ Build an interactive dashboard with Streamlit or Dash
-⭐ Include hospitalization or ICU data if available
+- Add user-selectable countries and date ranges.
+- Build an interactive dashboard with Streamlit or Dash.
+- Include hospitalization or ICU metrics where available.
+- Add data-quality notes for missing or stale metrics.
